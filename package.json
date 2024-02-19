@@ -1,0 +1,33 @@
+{
+  "name": "oracle-pyth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "compile": "hardhat compile",
+    "auroraTestnet:deploy": "hardhat --network auroraTestnet deploy",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.0.1",
+    "@pythnetwork/pyth-sdk-solidity": "^2.4.0",
+    "chai": "^4.4.1",
+    "dotenv": "^16.4.4",
+    "ethers": "^6.11.1",
+    "hardhat": "^2.20.1",
+    "hardhat-deploy": "^0.11.45",
+    "near-api-js": "^3.0.2",
+    "solidity-coverage": "^0.8.7",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@ethersproject/bytes": "^5.7.0"
+  }
+}
