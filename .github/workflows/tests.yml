@@ -1,0 +1,42 @@
+name: Tests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+
+jobs:
+  tests:
+    runs-on: [self-hosted, light]
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Linters
+        run: pnpm lint
+
+      - name: Compile
+        run: pnpm build
+        env:
+          AURORA_PRIVATE_KEY: ${{ secrets.WALLET_PRIVATE_KEY }}
+          GOERLI_PRIVATE_KEY: ${{ secrets.WALLET_PRIVATE_KEY }}
+
+    #   - name: Tests
+    #     run: pnpm coverage
+    #     env:
+    #       AURORA_PRIVATE_KEY: ${{ secrets.WALLET_PRIVATE_KEY }}
+    #       GOERLI_PRIVATE_KEY: ${{ secrets.WALLET_PRIVATE_KEY }}
