@@ -115,7 +115,7 @@ contract PythOracle is AccessControl {
         uint8 targetDecimals
     ) private pure returns (uint256) {
         if (price.price < 0 || price.expo > 0 || price.expo < -255) {
-            revert();
+            revert("Invalid price");
         }
 
         uint8 priceDecimals = uint8(uint32(-1 * price.expo));

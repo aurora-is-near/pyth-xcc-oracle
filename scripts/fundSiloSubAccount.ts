@@ -1,21 +1,33 @@
 // import { ethers } from "hardhat"
 import * as nearAPI from "near-api-js"
-const { keyStores, KeyPair, providers, connect, transactions } = nearAPI
-import { serialize as serializeBorsh, Schema } from "near-api-js/lib/utils/serialize"
+//const { keyStores, KeyPair, providers, connect, transactions } = nearAPI
+const { keyStores, KeyPair, connect, transactions } = nearAPI
+import { serialize as serializeBorsh } from "near-api-js/lib/utils/serialize"
 import { arrayify } from "@ethersproject/bytes";
+import { Schema } from "near-api-js/lib/utils/serialize";
 
 async function main() {
   const myKeyStore = new keyStores.InMemoryKeyStore()
   const keyPair = KeyPair.fromString(process.env.NEAR_KEY!)
+  console.log("NEAR key:", keyPair)
   await myKeyStore.setKey("testnet", process.env.NEAR_ACCOUNT!, keyPair)
+  console.log("NEAR account:", process.env.NEAR_ACCOUNT!)
   const nearConnection = await connect({
     networkId: "testnet",
     keyStore: myKeyStore,
     nodeUrl: process.env.NEAR_NODE_URL!,
   })
+  console.log("NEAR node URL:", process.env.NEAR_NODE_URL!)
+  // await myKeyStore.setKey("mainnet", process.env.NEAR_ACCOUNT!, keyPair)
+  // const nearConnection = await connect({
+  //   networkId: "mainnet",
+  //   keyStore: myKeyStore,
+  //   nodeUrl: process.env.NEAR_NODE_URL!,
+  // })
   const nearSigner = await nearConnection.account(process.env.NEAR_ACCOUNT!)
+  console.log("NEAR account:", process.env.NEAR_ACCOUNT!)
   class ArgStruct {
-    constructor(args: any) {
+    constructor(args: unknown) {
       Object.assign(this, args)
     }
   }
@@ -31,13 +43,29 @@ async function main() {
       },
     ],
   ])
+  console.log("Oracle address:", process.env.ORACLE_ADDRESS)
+  console.log("scHEMA:", schema)
+  const addr = arrayify(process.env.ORACLE_ADDRESS!)
+  console.log("Oracle address:", addr)
   const argStruct = new ArgStruct({
     target: arrayify(process.env.ORACLE_ADDRESS!),
-    wnear_account_id: "wrap.near",
+    //wnear_account_id: "wrap.near",
+    wnear_account_id: "wrap.testnet",
   })
+  console.log("Arg struct:", argStruct)
+  //const argBorsh = serializeBorsh(schema as unknown as Schema, argStruct);
+  // const schema = new Set([
+  //   [
+  //     ArgStruct,
+  //     [
+  //       ["target", { array: { type: "u8" } }], // Representing the target as an array of u8. address if length (20)
+  //       ["wnear_account_id", "string"], //
+  //     ],
+  //   ],
+  // ]);
+
   const argBorsh = serializeBorsh(schema as unknown as Schema, argStruct);
-  // const argBorsh = serializeBorsh(schema, argStruct)
-  
+
   // @ts-expect-error
   const tx = await nearSigner.signAndSendTransaction({
     receiverId: process.env.SILO_ACCOUNT!,
@@ -50,7 +78,7 @@ async function main() {
         "2" + "0".repeat(24)
       ),
     ],
-  })
+  });
   console.log("Fund XCC sub account transaction:", tx.transaction.hash, tx.status)
 
   // Add the oracle's sub account on NEAR to the silo admin to allow the callback.
