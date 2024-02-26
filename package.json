@@ -39,6 +39,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@ethersproject/bytes": "^5.7.0"
+    "@ethersproject/bytes": "^5.7.0",
+    "borsh": "^2.0.0"
   }
 }

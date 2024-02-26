@@ -1,10 +1,13 @@
 // import { ethers } from "hardhat"
 import * as nearAPI from "near-api-js"
-//const { keyStores, KeyPair, providers, connect, transactions } = nearAPI
-const { keyStores, KeyPair, connect, transactions } = nearAPI
-import { serialize as serializeBorsh } from "near-api-js/lib/utils/serialize"
 import { arrayify } from "@ethersproject/bytes";
-import { Schema } from "near-api-js/lib/utils/serialize";
+import * as borsh from 'borsh';
+const { keyStores, KeyPair, connect, transactions } = nearAPI
+
+//const { keyStores, KeyPair, providers, connect, transactions } = nearAPI
+//import { serialize as serializeBorsh } from "near-api-js/lib/utils/serialize"
+//import { Schema } from "near-api-js/lib/utils/serialize";
+//import { BorshSerializer } from './serialize';
 
 async function main() {
   const myKeyStore = new keyStores.InMemoryKeyStore()
@@ -26,45 +29,20 @@ async function main() {
   // })
   const nearSigner = await nearConnection.account(process.env.NEAR_ACCOUNT!)
   console.log("NEAR account:", process.env.NEAR_ACCOUNT!)
-  class ArgStruct {
-    constructor(args: unknown) {
-      Object.assign(this, args)
-    }
-  }
-  const schema = new Map([
-    [
-      ArgStruct,
-      {
-        kind: "struct",
-        fields: [
-          ["target", [20]],
-          ["wnear_account_id", { kind: "option", type: "String" }],
-        ],
-      },
-    ],
-  ])
+  
   console.log("Oracle address:", process.env.ORACLE_ADDRESS)
-  console.log("scHEMA:", schema)
   const addr = arrayify(process.env.ORACLE_ADDRESS!)
   console.log("Oracle address:", addr)
-  const argStruct = new ArgStruct({
-    target: arrayify(process.env.ORACLE_ADDRESS!),
-    //wnear_account_id: "wrap.near",
-    wnear_account_id: "wrap.testnet",
-  })
-  console.log("Arg struct:", argStruct)
-  //const argBorsh = serializeBorsh(schema as unknown as Schema, argStruct);
-  // const schema = new Set([
-  //   [
-  //     ArgStruct,
-  //     [
-  //       ["target", { array: { type: "u8" } }], // Representing the target as an array of u8. address if length (20)
-  //       ["wnear_account_id", "string"], //
-  //     ],
-  //   ],
-  // ]);
+ 
+const value = {
+    target: new Uint8Array(20), 
+    wnear_account_id: "wrap.testnet" 
+};
 
-  const argBorsh = serializeBorsh(schema as unknown as Schema, argStruct);
+const schema = { struct: { target: { array: { type: 'u8' }}, wnear_account_id: 'string'}};
+
+const argBorsh = borsh.serialize(schema, value);
+console.log("Arg borsh:", argBorsh) 
 
   // @ts-expect-error
   const tx = await nearSigner.signAndSendTransaction({
