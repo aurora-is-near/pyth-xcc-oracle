@@ -45,19 +45,19 @@ const argBorsh = borsh.serialize(schema, value);
 console.log("Arg borsh:", argBorsh) 
 
   // @ts-expect-error
-  const tx = await nearSigner.signAndSendTransaction({
-    receiverId: process.env.SILO_ACCOUNT!,
-    actions: [
-      transactions.functionCall(
-        "fund_xcc_sub_account",
-        argBorsh,
-        // @ts-expect-error
-        "200" + "0".repeat(12),
-        "2" + "0".repeat(24)
-      ),
-    ],
-  });
-  console.log("Fund XCC sub account transaction:", tx.transaction.hash, tx.status)
+  // const tx = await nearSigner.signAndSendTransaction({
+  //   receiverId: process.env.SILO_ACCOUNT!,
+  //   actions: [
+  //     transactions.functionCall(
+  //       "fund_xcc_sub_account",
+  //       argBorsh,
+  //       // @ts-expect-error
+  //       "200" + "0".repeat(12),
+  //       "2" + "0".repeat(24)
+  //     ),
+  //   ],
+  // });
+  // console.log("Fund XCC sub account transaction:", tx.transaction.hash, tx.status)
 
   // Add the oracle's sub account on NEAR to the silo admin to allow the callback.
   // https://nearblocks.io/txns/5j8JEyZKPe98j2YpwXifnzEWGLiPXevL6esghsk7RmQq#execution

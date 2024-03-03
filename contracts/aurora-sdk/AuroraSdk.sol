@@ -45,7 +45,7 @@ library AuroraSdk {
     function initNear(IERC20 wNEAR) public returns (NEAR memory) {
         // Innovation silo doens't have wNEAR deployed, call fund_xcc_sub_account.
         NEAR memory near = NEAR(true, wNEAR);
-        // near.wNEAR.approve(XCC_PRECOMPILE, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
+        near.wNEAR.approve(XCC_PRECOMPILE, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
         return near;
     }
 

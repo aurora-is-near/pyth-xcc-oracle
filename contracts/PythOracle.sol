@@ -46,6 +46,7 @@ contract PythOracle is AccessControl {
     ) {
         auroraMainnetAccountId = _auroraMainnetAccountId;
         near = AuroraSdk.initNear(_wNEAR);
+        
         wNEAR = address(_wNEAR);
         _grantRole(
             CALLBACK_ROLE,
