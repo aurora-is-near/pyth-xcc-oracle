@@ -27,6 +27,20 @@ async function main() {
   console.log("Call getPythPrice tx:", tx.hash)
   const price = await pythOracle.priceResult()
   console.log("Price result:", price)
+
+  const theOutput = await pythOracle.theOutput()
+  console.log("The output:", theOutput) 
+  const theData = await pythOracle.theData()
+  console.log("The data:", theData) 
+  
+  const priceCall = await pythOracle.priceCall()
+  console.log("Price call:", priceCall)
+  const confCall = await pythOracle.confCall()
+  console.log("conf call:", confCall)
+  const expoCall = await pythOracle.expoCall()
+  console.log("expo call:", expoCall)
+  const publishTimeCall = await pythOracle.publishTimeCall()
+  console.log("publish time call:", publishTimeCall)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

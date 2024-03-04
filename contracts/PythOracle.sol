@@ -39,6 +39,20 @@ contract PythOracle is AccessControl {
     uint256 public priceResult;
     uint8 targetPriceDecimals;
 
+// For tetsting    
+        bytes public theOutput;
+        bytes public theData;
+        int64 public priceCall;
+        uint64 public confCall;
+        int32 public expoCall;
+        uint public publishTimeCall;
+        int64 public testPriceCall;
+        uint64 public testConfCall;
+        int32 public testExpoCall;
+        uint public testPublishTimeCall;
+        bool public revertIfTrue;
+
+
     constructor(
         string memory _auroraMainnetAccountId,
         IERC20 _wNEAR,
@@ -46,7 +60,7 @@ contract PythOracle is AccessControl {
     ) {
         auroraMainnetAccountId = _auroraMainnetAccountId;
         near = AuroraSdk.initNear(_wNEAR);
-        
+
         wNEAR = address(_wNEAR);
         _grantRole(
             CALLBACK_ROLE,
@@ -56,9 +70,11 @@ contract PythOracle is AccessControl {
         priceFeedAddr = _priceFeedAddr;
     }
 
-    function getPythPrice(bytes memory priceId, uint8 _targetPriceDecimals) public returns (uint256) {
+    function getPythPrice(bytes memory priceId, uint8 _targetPriceDecimals, bool _revertIfTrue) public { //returns (uint256) {
         targetPriceDecimals = _targetPriceDecimals;
         
+        revertIfTrue = _revertIfTrue;
+
         bytes memory txData = abi.encodeWithSignature(
             "getPrice(bytes32)",
             priceId
@@ -83,29 +99,101 @@ contract PythOracle is AccessControl {
         );
 
         callMainnetOracle.then(callback).transact();
-        return priceResult;
+        // return priceResult;
     }
 
     // This function is not meant to be called by an externally owned account (EOA) on Aurora.
     // It should only be invoked as a callback from the main `getPythPrice` method above. This is
     // the reason why this function has separate access control from `getPythPrice`.
     function getPythPriceCallback() public onlyRole(CALLBACK_ROLE) {
+        if(revertIfTrue) revert("call back function is called");
+        
         if (
             AuroraSdk.promiseResult(0).status != PromiseResultStatus.Successful
         ) {
             revert("getPythPrice call failed-NEAR");
         }
         bytes memory output = AuroraSdk.promiseResult(0).output;
+        theOutput = output;
         if (output[1] != hex"00") {
             revert("getPythPrice call failed-Aurora");
         }
         bytes memory data = Borsh.decodeBytes(
             Borsh.from(BytesLib.slice(output, 2, output.length - 2))
         );
+        theData = data;
         PythStructs.Price memory pyhtPrice = abi.decode(data, (PythStructs.Price));
+        priceCall = pyhtPrice.price;
+        confCall = pyhtPrice.conf;
+        expoCall = pyhtPrice.expo;
+        publishTimeCall = pyhtPrice.publishTime;
+        priceCall = pyhtPrice.price;
+        confCall = pyhtPrice.conf;
+        expoCall = pyhtPrice.expo;
+        publishTimeCall = pyhtPrice.publishTime;
+
 
         priceResult = convertToUint(pyhtPrice, targetPriceDecimals);
     }
+
+    function testGetPythPrice(bytes memory priceId, uint8 _targetPriceDecimals) public returns (uint256) {
+        targetPriceDecimals = _targetPriceDecimals;
+        
+        bytes memory txData = abi.encodeWithSignature(
+            "getPriceUnsafe(bytes32)",
+            priceId
+        );
+        PromiseCreateArgs memory callMainnetOracle = near.call(
+            auroraMainnetAccountId,
+            "call",
+            abi.encodePacked(
+                uint8(0),
+                priceFeedAddr,
+                uint256(0),
+                txData.encode()
+            ),
+            0,
+            CALL_NEAR_GAS
+        );
+        PromiseCreateArgs memory callback = near.auroraCall(
+            address(this),
+            abi.encodePacked(this.testGetPythPriceCallback.selector),
+            0,
+            CALLBACK_NEAR_GAS
+        );
+
+        callMainnetOracle.then(callback).transact();
+        return priceResult;
+    }
+
+    // This function is not meant to be called by an externally owned account (EOA) on Aurora.
+    // It should only be invoked as a callback from the main `getPythPrice` method above. This is
+    // the reason why this function has separate access control from `getPythPrice`.
+    function testGetPythPriceCallback() public onlyRole(CALLBACK_ROLE) {
+        if (
+            AuroraSdk.promiseResult(0).status != PromiseResultStatus.Successful
+        ) {
+            revert("getPythPrice call failed-NEAR");
+        }
+        bytes memory output = AuroraSdk.promiseResult(0).output;
+        theOutput = output;
+        if (output[1] != hex"00") {
+            revert("getPythPrice call failed-Aurora");
+        }
+        bytes memory data = Borsh.decodeBytes(
+            Borsh.from(BytesLib.slice(output, 2, output.length - 2))
+        );
+        theData = data;
+        PythStructs.Price memory pyhtPrice = abi.decode(data, (PythStructs.Price));
+        testPriceCall = pyhtPrice.price;
+        testConfCall = pyhtPrice.conf;
+        testExpoCall = pyhtPrice.expo;
+        testPublishTimeCall = pyhtPrice.publishTime;
+
+        priceResult = convertToUint(pyhtPrice, targetPriceDecimals);
+    }
+
+
 
     function nearRepresentitiveImplicitAddress() public returns (address) {
         return AuroraSdk.nearRepresentitiveImplicitAddress(address(this));
