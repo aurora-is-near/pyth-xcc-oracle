@@ -20,7 +20,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log("AuroraSdk deployed at:", auroraSdk.address)
   const pythOracle = await deploy("PythOracle", {
     from: deployer.address,
-    args: ["aurora.testnet", WNEAR, PYTH_PRICE_FEED],
+    args: ["aurora", WNEAR, PYTH_PRICE_FEED],
     log: true,
     libraries: {
       AuroraSdk: auroraSdk.address,

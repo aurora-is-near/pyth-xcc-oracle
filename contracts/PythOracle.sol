@@ -16,7 +16,7 @@ uint64 constant CALL_NEAR_GAS = 100_000_000_000_000;
 uint64 constant CALLBACK_NEAR_GAS = 10_000_000_000_000;
 
 /**
- * A simple oracle example deployed on an Aurora Silo which uses a Uniswap V2 pool (Trisolaris) as price feed from Aurora Mainnet.
+ * Pyth oracle deployed on an Aurora Testnet. Read Through XCC Pyth Price feed.
  * The result of the XCC call is returned in the callback from Aurora Mainnet to the Silo.
  */
 contract PythOracle is AccessControl {
@@ -27,7 +27,7 @@ contract PythOracle is AccessControl {
 
     IPyth pyth;
     uint fee;
-// Pyth Crypto.AURORA/USD	0x2f7c4f738d498585065a4b87b637069ec99474597da7f0ca349ba8ac3ba9cac5
+    // Pyth Crypto.AURORA/USD	0x2f7c4f738d498585065a4b87b637069ec99474597da7f0ca349ba8ac3ba9cac5
 
     bytes32 public constant CALLBACK_ROLE = keccak256("CALLBACK_ROLE");
 
@@ -56,7 +56,7 @@ contract PythOracle is AccessControl {
         priceFeedAddr = _priceFeedAddr;
     }
 
-    function getPythPrice(bytes memory priceId, uint8 _targetPriceDecimals) public returns (uint256) {
+    function getPythPrice(bytes memory priceId,uint8 _targetPriceDecimals) public returns (uint256) {
         targetPriceDecimals = _targetPriceDecimals;
         
         bytes memory txData = abi.encodeWithSignature(
@@ -110,7 +110,6 @@ contract PythOracle is AccessControl {
     function nearRepresentitiveImplicitAddress() public returns (address) {
         return AuroraSdk.nearRepresentitiveImplicitAddress(address(this));
     }
-
     function convertToUint(
         PythStructs.Price memory price,
         uint8 targetDecimals
