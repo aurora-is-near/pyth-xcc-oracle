@@ -1,0 +1,285 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0x1E565c56739f8F78ADA48D86a40094B8a3b13aa4",
+      "txHash": "0xd1a98ff3c23b8f8f1d7193f7b9268d3b58266ed1611c3a3faa464ee9853b7c27",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x2B5A710A4FdEA36dC0e6a941E3d43251EA2da132",
+      "txHash": "0xfa920bfba71cd4edbaa6c8c41d8c51b3de0b7588586d705164685e3768c1e0ee",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xB366ab10C70F0507e568D126ac2680fBB91B9bD1",
+      "txHash": "0xbbd1fbe9cc9a80036759e9efd2eaf00a39a11b217ef86eb08efeda208405e50a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3Bfb2848C12D7137D332FA26A8265725fC25f629",
+      "txHash": "0xde8ea62db6bdf6cbadf37991292cd8c754469955717d1fb52c8b1ff8464cbcc3",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x161e2011C63586cA747E1D7D2F8fCcCd36c3F626",
+      "txHash": "0x2dccbf2d42bfe5de656b76e937bff3cf29ace131cc97693ba145da0b7460ddfd",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "68292483206be44526879619c183b7c8b1dc6b863831b749ced926fcd57b20b1": {
+      "address": "0x57fdfc74E8EE72C5CC9d845C2647BA86c6Fa7E39",
+      "txHash": "0xea6e6740dbf0cda1b8dcf841257a7ff6b7dcc903cb24860fa7109dcc17f44f37",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "pyth",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IPyth)1362",
+            "contract": "PythOracle",
+            "src": "contracts/PythOracle.sol:32"
+          },
+          {
+            "label": "fee",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "PythOracle",
+            "src": "contracts/PythOracle.sol:33"
+          },
+          {
+            "label": "auroraMainnetAccountId",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_string_storage",
+            "contract": "PythOracle",
+            "src": "contracts/PythOracle.sol:38"
+          },
+          {
+            "label": "near",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_struct(NEAR)2244_storage",
+            "contract": "PythOracle",
+            "src": "contracts/PythOracle.sol:39"
+          },
+          {
+            "label": "wNEAR",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "PythOracle",
+            "src": "contracts/PythOracle.sol:40"
+          },
+          {
+            "label": "priceFeedAddr",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "PythOracle",
+            "src": "contracts/PythOracle.sol:41"
+          },
+          {
+            "label": "priceValidTimeRange",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_uint256",
+            "contract": "PythOracle",
+            "src": "contracts/PythOracle.sol:44"
+          },
+          {
+            "label": "priceMap",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_bytes32,t_struct(Price)1395_storage)",
+            "contract": "PythOracle",
+            "src": "contracts/PythOracle.sol:46"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)25_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AccessControlStorage)34_storage": {
+            "label": "struct AccessControlUpgradeable.AccessControlStorage",
+            "members": [
+              {
+                "label": "_roles",
+                "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)93_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)25_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "hasRole",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_contract(IERC20)1159": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPyth)1362": {
+            "label": "contract IPyth",
+            "numberOfBytes": "20"
+          },
+          "t_int32": {
+            "label": "int32",
+            "numberOfBytes": "4"
+          },
+          "t_int64": {
+            "label": "int64",
+            "numberOfBytes": "8"
+          },
+          "t_mapping(t_bytes32,t_struct(Price)1395_storage)": {
+            "label": "mapping(bytes32 => struct PythStructs.Price)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(NEAR)2244_storage": {
+            "label": "struct NEAR",
+            "members": [
+              {
+                "label": "initialized",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "wNEAR",
+                "type": "t_contract(IERC20)1159",
+                "offset": 1,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Price)1395_storage": {
+            "label": "struct PythStructs.Price",
+            "members": [
+              {
+                "label": "price",
+                "type": "t_int64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "conf",
+                "type": "t_uint64",
+                "offset": 8,
+                "slot": "0"
+              },
+              {
+                "label": "expo",
+                "type": "t_int32",
+                "offset": 16,
+                "slot": "0"
+              },
+              {
+                "label": "publishTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.AccessControl": [
+            {
+              "contract": "AccessControlUpgradeable",
+              "label": "_roles",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+              "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

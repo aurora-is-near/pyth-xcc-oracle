@@ -7,23 +7,28 @@ import {AuroraSdk, Codec, NEAR, PromiseCreateArgs, PromiseResultStatus, PromiseW
 import {BytesLib} from "./BytesLib.sol";
 import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
+// import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+// import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-// When making a call to another NEAR contract, you must specify how much NEAR gas
-// will be attached to the call (this is simlar to the `gas` argument in the EVM `call` opcode).
-// The typical unit of has on Near is the teragas (Tgas), where 1 Tgas = 10^12 gas.
-// For example, the block gas limit on NEAR is 1000 Tgas, and the transaction gas limit is 300 Tgas.
-uint64 constant CALL_NEAR_GAS = 100_000_000_000_000;
-uint64 constant CALLBACK_NEAR_GAS = 10_000_000_000_000;
 
 /**
  * Pyth oracle deployed on an Aurora Testnet. Read Through XCC Pyth Price feed.
  * The result of the XCC call is returned in the callback from Aurora Mainnet to the Silo.
  */
+//contract PythOracle is Initializable, AccessControlUpgradeable {
 contract PythOracle is AccessControl {
     using AuroraSdk for NEAR;
     using AuroraSdk for PromiseCreateArgs;
     using AuroraSdk for PromiseWithCallback;
     using Codec for bytes;
+
+// When making a call to another NEAR contract, you must specify how much NEAR gas
+// will be attached to the call (this is simlar to the `gas` argument in the EVM `call` opcode).
+// The typical unit of has on Near is the teragas (Tgas), where 1 Tgas = 10^12 gas.
+// For example, the block gas limit on NEAR is 1000 Tgas, and the transaction gas limit is 300 Tgas.
+    
+    uint64 private constant CALL_NEAR_GAS = 100_000_000_000_000;
+    uint64 private constant CALLBACK_NEAR_GAS = 10_000_000_000_000;
 
     IPyth pyth;
     uint fee;
@@ -36,32 +41,36 @@ contract PythOracle is AccessControl {
     address public wNEAR;
     address public priceFeedAddr;
 
-    uint256 public priceResult;
-    uint8 targetPriceDecimals;
+    // uint8 targetPriceDecimals;
+    uint priceValidTimeRange;
+
+    mapping(bytes32 => PythStructs.Price) public priceMap;
 
     constructor(
-        string memory _auroraMainnetAccountId,
-        IERC20 _wNEAR,
-        address _priceFeedAddr
+            string memory _auroraMainnetAccountId,
+            IERC20 _wNEAR,
+            address _priceFeedAddr,
+            uint _priceValidTimeRange
     ) {
-        auroraMainnetAccountId = _auroraMainnetAccountId;
-        near = AuroraSdk.initNear(_wNEAR);
-        
-        wNEAR = address(_wNEAR);
+        // __AccessControl_init();
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _grantRole(
             CALLBACK_ROLE,
             AuroraSdk.nearRepresentitiveImplicitAddress(address(this))
         );
+        auroraMainnetAccountId = _auroraMainnetAccountId;
+        near = AuroraSdk.initNear(_wNEAR);
+        wNEAR = address(_wNEAR);
         pyth = IPyth(_priceFeedAddr);
         priceFeedAddr = _priceFeedAddr;
+        priceValidTimeRange = _priceValidTimeRange;
     }
 
-    function getPythPrice(bytes memory priceId,uint8 _targetPriceDecimals) public returns (uint256) {
-        targetPriceDecimals = _targetPriceDecimals;
-        
+    function getPythPrice(bytes32 pairId) public {
+        // targetPriceDecimals = _targetPriceDecimals;
         bytes memory txData = abi.encodeWithSignature(
             "getPrice(bytes32)",
-            priceId
+            pairId
         );
         PromiseCreateArgs memory callMainnetOracle = near.call(
             auroraMainnetAccountId,
@@ -77,19 +86,19 @@ contract PythOracle is AccessControl {
         );
         PromiseCreateArgs memory callback = near.auroraCall(
             address(this),
-            abi.encodePacked(this.getPythPriceCallback.selector),
+            //abi.encodePacked(this.getPythPriceCallback.selector, pairId),
+            abi.encodeWithSignature("getPythPriceCallback(bytes32)",pairId),
             0,
             CALLBACK_NEAR_GAS
         );
 
         callMainnetOracle.then(callback).transact();
-        return priceResult;
     }
 
     // This function is not meant to be called by an externally owned account (EOA) on Aurora.
     // It should only be invoked as a callback from the main `getPythPrice` method above. This is
     // the reason why this function has separate access control from `getPythPrice`.
-    function getPythPriceCallback() public onlyRole(CALLBACK_ROLE) {
+    function getPythPriceCallback(bytes32 pairId) public onlyRole(CALLBACK_ROLE) {
         if (
             AuroraSdk.promiseResult(0).status != PromiseResultStatus.Successful
         ) {
@@ -102,15 +111,43 @@ contract PythOracle is AccessControl {
         bytes memory data = Borsh.decodeBytes(
             Borsh.from(BytesLib.slice(output, 2, output.length - 2))
         );
-        PythStructs.Price memory pyhtPrice = abi.decode(data, (PythStructs.Price));
-
-        priceResult = convertToUint(pyhtPrice, targetPriceDecimals);
+        priceMap[pairId] = abi.decode(data, (PythStructs.Price));
     }
 
     function nearRepresentitiveImplicitAddress() public returns (address) {
         return AuroraSdk.nearRepresentitiveImplicitAddress(address(this));
     }
-    function convertToUint(
+
+    function readPriceUnSafe(bytes32 pairId, uint8 targetPriceDecimals) public view returns (uint256) {
+        PythStructs.Price memory price = priceMap[pairId];
+        return convertPriceToUint(price, targetPriceDecimals);
+    }
+    function readPrice(bytes32 pairId, uint8 targetPriceDecimals) public view returns (uint256) {
+        PythStructs.Price memory price = priceMap[pairId];
+        require(block.timestamp <= price.publishTime + priceValidTimeRange, "Price is outdated");
+        return convertPriceToUint(price, targetPriceDecimals);
+    } 
+    function readPriceInfo(bytes32 pairId, uint8 targetPriceDecimals) public view returns (uint256, uint256) {
+        PythStructs.Price memory price = priceMap[pairId];
+        require(block.timestamp <= price.publishTime + priceValidTimeRange, "Price is outdated");
+        uint256 priceOut = convertPriceToUint(price, targetPriceDecimals);
+        uint256 confOut = convertConfToUint(price, targetPriceDecimals);
+        return (priceOut, confOut);
+    }
+
+    // Set the price valid time range
+    function setPriceValidTimeRange(uint _priceValidTimeRange) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_priceValidTimeRange > 0, "Invalid priceValidTimeRange");
+        priceValidTimeRange = _priceValidTimeRange;
+    }
+
+    // Replace admin role
+    function replaceAdmin(address adminAddress) public {
+        grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
+        renounceRole(DEFAULT_ADMIN_ROLE, msg.sender); 
+    }
+
+    function convertPriceToUint(
         PythStructs.Price memory price,
         uint8 targetDecimals
     ) private pure returns (uint256) {
@@ -128,6 +165,27 @@ contract PythOracle is AccessControl {
             return
                 uint(uint64(price.price)) /
                 10 ** uint32(priceDecimals - targetDecimals);
+        }
+    }
+
+    function convertConfToUint(
+        PythStructs.Price memory price,
+        uint8 targetDecimals
+    ) private pure returns (uint256) {
+        if (price.expo > 0 || price.expo < -255) {
+            revert("Invalid expo");
+        }
+
+        uint8 confDecimals = uint8(uint32(-1 * price.expo));
+
+        if (targetDecimals >= confDecimals) {
+            return
+                uint(uint64(price.conf)) *
+                10 ** uint32(targetDecimals - confDecimals);
+        } else {
+            return
+                uint(uint64(price.conf)) /
+                10 ** uint32(Decimals - targetDecimals);
         }
     }
 

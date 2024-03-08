@@ -3,6 +3,7 @@ import "@nomicfoundation/hardhat-toolbox"
 import "hardhat-deploy"
 import "@nomicfoundation/hardhat-ethers"
 import * as dotenv from "dotenv"
+import "@openzeppelin/hardhat-upgrades"
 
 dotenv.config()
 
