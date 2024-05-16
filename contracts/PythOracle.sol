@@ -29,12 +29,14 @@ contract PythOracle is AccessControl {
     
     uint64 private constant CALL_NEAR_GAS = 100_000_000_000_000;
     uint64 private constant CALLBACK_NEAR_GAS = 10_000_000_000_000;
+    uint8 private constant DEFAULT_DECIMALS = 18;
 
     IPyth pyth;
     uint fee;
     // Pyth Crypto.AURORA/USD	0x2f7c4f738d498585065a4b87b637069ec99474597da7f0ca349ba8ac3ba9cac5
 
     bytes32 public constant CALLBACK_ROLE = keccak256("CALLBACK_ROLE");
+    bytes32 public constant PAIR_IDS_OWNER = keccak256("PAIR_IDS_OWNER");
 
     string public auroraMainnetAccountId;
     NEAR public near;
@@ -45,12 +47,15 @@ contract PythOracle is AccessControl {
     uint priceValidTimeRange;
 
     mapping(bytes32 => PythStructs.Price) public priceMap;
+    // Pyth token symbol to USD price pairId mapping
+    mapping(string => bytes32) public tokenUsdPairId;
 
     constructor(
             string memory _auroraMainnetAccountId,
             IERC20 _wNEAR,
             address _priceFeedAddr,
-            uint _priceValidTimeRange
+            uint _priceValidTimeRange,
+            address pairIdsOwner
     ) {
         // __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
@@ -58,6 +63,8 @@ contract PythOracle is AccessControl {
             CALLBACK_ROLE,
             AuroraSdk.nearRepresentitiveImplicitAddress(address(this))
         );
+        _grantRole(PAIR_IDS_OWNER, pairIdsOwner);
+
         auroraMainnetAccountId = _auroraMainnetAccountId;
         near = AuroraSdk.initNear(_wNEAR);
         wNEAR = address(_wNEAR);
@@ -65,9 +72,8 @@ contract PythOracle is AccessControl {
         priceFeedAddr = _priceFeedAddr;
         priceValidTimeRange = _priceValidTimeRange;
     }
-
+      
     function getPythPrice(bytes32 pairId) public {
-        // targetPriceDecimals = _targetPriceDecimals;
         bytes memory txData = abi.encodeWithSignature(
             "getPrice(bytes32)",
             pairId
@@ -122,17 +128,35 @@ contract PythOracle is AccessControl {
         PythStructs.Price memory price = priceMap[pairId];
         return convertPriceToUint(price, targetPriceDecimals);
     }
+    
+    function getPairRate(string memory tokenA, string memory tokenB, uint8 decimalsTokenB) public view returns (uint256) {
+        require(tokenUsdPairId[tokenA] != bytes32(0) , "no tokenUsdPairId for tokenA");
+        require(tokenUsdPairId[tokenB] != bytes32(0) , "no tokenUsdPairId for tokenB"); 
+        uint256 priceA = readPrice(tokenUsdPairId[tokenA], DEFAULT_DECIMALS);
+        uint256 priceB = readPrice(tokenUsdPairId[tokenB], DEFAULT_DECIMALS);
+        return (priceA * 10**decimalsTokenB) / priceB;
+    }
+
     function readPrice(bytes32 pairId, uint8 targetPriceDecimals) public view returns (uint256) {
         PythStructs.Price memory price = priceMap[pairId];
         require(block.timestamp <= price.publishTime + priceValidTimeRange, "Price is outdated");
         return convertPriceToUint(price, targetPriceDecimals);
-    } 
+    }
+
     function readPriceInfo(bytes32 pairId, uint8 targetPriceDecimals) public view returns (uint256, uint256) {
         PythStructs.Price memory price = priceMap[pairId];
         require(block.timestamp <= price.publishTime + priceValidTimeRange, "Price is outdated");
         uint256 priceOut = convertPriceToUint(price, targetPriceDecimals);
         uint256 confOut = convertConfToUint(price, targetPriceDecimals);
         return (priceOut, confOut);
+    }
+
+    // Set Token-Usd PairId
+    function setTokenUsdPairId(string[] memory tokenA, bytes32[] memory _pairId) public onlyRole(PAIR_IDS_OWNER) {  
+        require(tokenA.length == _pairId.length, "Array lengths do not match");
+        for (uint i = 0; i < tokenA.length; i++) {
+            tokenUsdPairId[tokenA[i]] = _pairId[i];
+        }
     }
 
     // Set the price valid time range
@@ -151,7 +175,7 @@ contract PythOracle is AccessControl {
         PythStructs.Price memory price,
         uint8 targetDecimals
     ) private pure returns (uint256) {
-        if (price.price < 0 || price.expo > 0 || price.expo < -255) {
+        if (price.price <= 0 || price.expo > 0 || price.expo < -255) {
             revert("Invalid price");
         }
 
@@ -185,7 +209,7 @@ contract PythOracle is AccessControl {
         } else {
             return
                 uint(uint64(price.conf)) /
-                10 ** uint32(Decimals - targetDecimals);
+                10 ** uint32(confDecimals - targetDecimals);
         }
     }
 
