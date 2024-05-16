@@ -1,0 +1,15 @@
+- alias: BTC-USD
+  id: e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43
+  time_difference: 40
+  price_deviation: 0.5
+  confidence_ratio: 1
+- alias: ETH-USD
+  id: ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace
+  time_difference: 40
+  price_deviation: 0.5
+  confidence_ratio: 1
+- alias: AURORA-USD
+  id: 2f7c4f738d498585065a4b87b637069ec99474597da7f0ca349ba8ac3ba9cac5
+  time_difference: 40
+  price_deviation: 0.5
+  confidence_ratio: 1
